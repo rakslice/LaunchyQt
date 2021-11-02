@@ -197,7 +197,7 @@ void runProgram(const QString& file, const QString& args, bool translateSeparato
 
     QString cmd;
 
-    if (!info.isExecutable() || info.isDir()) {
+    if ((info.isFile() && !info.isExecutable()) || info.isDir()) {
         /* if more then one file is passed, then xdg-open will fail.. */
         cmd = "xdg-open \"" + path.trimmed() + "\"";
     }
