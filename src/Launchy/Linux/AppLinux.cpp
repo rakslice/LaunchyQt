@@ -152,7 +152,8 @@ void AppLinux::alterItem(CatItem* item) {
     while(!file.atEnd()) {
         QString line = QString::fromUtf8(file.readLine());
 
-        if (line.startsWith("Name[" + locale, Qt::CaseInsensitive)) {
+        if (line.startsWith("Name[" + locale + "_", Qt::CaseInsensitive) ||
+            line.startsWith("Name[" + locale + "]", Qt::CaseInsensitive) ) {
             name = line.section("=",1).trimmed();
         }
         else if (line.startsWith("Name=", Qt::CaseInsensitive)) {
