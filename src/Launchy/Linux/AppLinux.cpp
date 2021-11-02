@@ -148,20 +148,24 @@ void AppLinux::alterItem(CatItem* item) {
     QString name;
     QString icon;
     QString exe;
+    bool need_terminal = false;
     while(!file.atEnd()) {
         QString line = QString::fromUtf8(file.readLine());
 
         if (line.startsWith("Name[" + locale, Qt::CaseInsensitive)) {
-            name = line.split("=")[1].trimmed();
+            name = line.section("=",1).trimmed();
         }
         else if (line.startsWith("Name=", Qt::CaseInsensitive)) {
-            name = line.split("=")[1].trimmed();
+            name = line.section("=",1).trimmed();
         }
         else if (line.startsWith("Icon", Qt::CaseInsensitive)) {
-            icon = line.split("=")[1].trimmed();
+            icon = line.section("=",1).trimmed();
         }
         else if (line.startsWith("Exec", Qt::CaseInsensitive)) {
-            exe = line.split("=")[1].trimmed();
+            exe = line.section("=",1).trimmed();
+        }
+        else if (line.startsWith("Term", Qt::CaseInsensitive)) {
+            need_terminal = line.section("=",1).trimmed().toLower() == "true";
         }
     }
 
@@ -195,13 +199,12 @@ void AppLinux::alterItem(CatItem* item) {
        stuff from the working directory - if it doesnt exsist, use it anyway */
     if(!exe.contains(QRegExp("^.?.?/"))) {
         foreach(QString line, QProcess::systemEnvironment()) {
-            if (!line.startsWith("Path", Qt::CaseInsensitive)) {
+            if (!line.startsWith("Path=", Qt::CaseInsensitive)) {
                 continue;
             }
 
-            QStringList spl = line.split("=");
-            QStringList spl2 = spl[1].split(":");
-            foreach(QString dir, spl2) {
+            QStringList spl = line.section("=",1).split(":");
+            foreach(QString dir, spl) {
                 QString tmp = dir + "/" + exe;
                 if (QFile::exists(tmp)) {
                     exe = tmp;
@@ -212,7 +215,15 @@ void AppLinux::alterItem(CatItem* item) {
         }
     }
 
-    item->fullPath = exe + " " + allExe.join(" ");
+    QString terminalEmulator = "/usr/bin/x-terminal-emulator";
+    if (!QFile::exists(terminalEmulator)) {
+        terminalEmulator = "xterm";
+    }
+
+    if (need_terminal)
+        item->fullPath = terminalEmulator + " -e " + exe + " " + allExe.join(" ");
+    else
+        item->fullPath = exe + " " + allExe.join(" ");
 
     // Cache the icon for this desktop file
     //shared_ptr<UnixIconProvider> u(dynamic_pointer_cast<UnixIconProvider>(icons));
