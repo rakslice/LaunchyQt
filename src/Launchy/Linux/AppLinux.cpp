@@ -170,7 +170,7 @@ void AppLinux::alterItem(CatItem* item) {
         }
     }
 
-    if (name.size() >= item->shortName.size() - 8) {
+    if (name.size() > 0) {
         item->shortName = name;
         item->searchName[CatItem::LOWER] = item->shortName.toLower();
         item->searchName[CatItem::TRANS] = CatItem::convertSearchName(item->searchName[CatItem::LOWER]);
